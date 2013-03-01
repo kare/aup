@@ -2,6 +2,12 @@
 	Convert macro values to strings
 	AUP2, Sec. 5.08 (not in book)
 
+	7-May-2005: Change to initialize macrostr_db with assignments (in
+	function macrostr_init) because macros don't necessarily expand
+	to constants. (See also mkmacrostr.c.)
+
+	-----------------------------------------------------------------
+
 	Copyright 2003 by Marc J. Rochkind. All rights reserved.
 	May be copied only for purposes and under conditions described
 	on the Web page www.basepath.com/aup/copyright.htm.
@@ -44,9 +50,17 @@ static struct {
 	char *ms_macro;
 	char *ms_desc;
 } macrostr_db[] = {
-#include "macrostr.incl"
+#include "macrostr1.incl"
 	{ NULL, 0, NULL, NULL}
 };
+
+void macrostr_init(void)
+{
+	if (macrostr_db[0].ms_code == 0) {
+#include "macrostr2.incl"
+	}
+}
+
 
 char *get_macrostr(const char *cat, int code, char **desc)
 {

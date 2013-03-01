@@ -2,6 +2,12 @@
 	Convert macro values to strings - compiler
 	AUP2, Sec. 5.08 (not in book)
 
+	7-May-2005: Change to initialize macrostr_db with assignments (in
+	function macrostr_init) because macros don't necessarily expand
+	to constants. (See also macrostr.c.)
+
+	-----------------------------------------------------------------
+
 	Copyright 2003 by Marc J. Rochkind. All rights reserved.
 	May be copied only for purposes and under conditions described
 	on the Web page www.basepath.com/aup/copyright.htm.
@@ -22,22 +28,31 @@
 
 int main(int argc, char *argv[])
 {
-	FILE *in, *out;
-	char *file, s[100], cat[100], *macro, *desc;
-	int len;
+	FILE *in, *out1, *out2;
+	char *file, *dir, s[100], cat[100], *macro, *desc, buf[200];
+	int len, n = 0;
 
 	if (argc < 2)
 		file = "/aup/common/macrostr.txt";
-	else
+	else {
 		file = argv[1];
+		if (argc < 3)
+			dir = "/aup/common";
+		else
+			dir = argv[2];
+	}
+	(void)sprintf(buf, "%s/macrostr1.incl", dir);
+	ec_null( out1 = fopen(buf, "w") )
+	(void)sprintf(buf, "%s/macrostr2.incl", dir);
+	ec_null( out2 = fopen(buf, "w") )
 	ec_null( in = fopen(file, "r") )
-	ec_null( out = fopen("/aup/common/macrostr.incl", "w") )
 	while (fgets(s, sizeof(s), in) != NULL) {
 		for (len = strlen(s); len > 0 && isspace((int)s[len - 1]); len--)
 			;
 		s[len] = '\0';
 		if (s[0] == '#') {
-			fprintf(out, "%s\n", s);
+			fprintf(out1, "%s\n", s);
+			fprintf(out2, "%s\n", s);
 			continue;
 		}
 		if (s[len - 1] == ':') {
@@ -54,10 +69,14 @@ int main(int argc, char *argv[])
 			else
 				while (isspace((int)*desc))
 					desc++;
-			fprintf(out, "{\"%s\", (intptr_t)%s, \"%s\", \"%s\"},\n",
-			  cat, macro, macro, desc);
+			fprintf(out1, "{\"%s\", 0, \"%s\", \"%s\"},\n",
+			  cat, macro, desc);
+			fprintf(out2, "macrostr_db[%d].ms_code = (intptr_t)%s;\n", n++, macro);
 		}
 	}
+	(void)fclose(in);
+	(void)fclose(out1);
+	(void)fclose(out2);
 	exit(EXIT_SUCCESS);
 
 EC_CLEANUP_BGN

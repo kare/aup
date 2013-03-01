@@ -191,7 +191,9 @@ SIGTTOU Background process attempting write
 SIGUSR1 User-defined signal 1
 SIGUSR2 User-defined signal 2
 #ifdef _XOPEN_UNIX
+#ifndef DARWIN /* should be defined in OS X 10.4 (Darwin 8.0) but isn't */
 SIGPOLL Pollable event
+#endif
 #endif
 SIGPROF Profiling timer expired
 SIGSYS Bad system call
